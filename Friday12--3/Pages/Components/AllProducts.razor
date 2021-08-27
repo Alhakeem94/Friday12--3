@@ -1,0 +1,132 @@
+﻿@page "/AllLaptops"
+
+@inject Friday12__3.Interfaces.IProducts _IProducts
+@inject NavigationManager _NavMan
+@inject IJSRuntime _Js
+
+@using Blazored.Modal.Services
+
+
+
+
+<table class="table table-hover text-center" dir="rtl">
+
+    <tr style="background-color:lightblue" class="font-weight-bolder">
+        <th>رقم الابتوب</th>
+        <th>اسم اللابتوب</th>
+        <th>اسم الشركة </th>
+        <th>تفاصيل المنتج</th>
+        <th></th>
+    </tr>
+
+    @foreach (var item in ListOfProducts)
+    {
+        <tr class="text-black">
+            <td>@item.Id</td>
+            <td>@item.Name</td>
+            <td>@item.CompanyName</td>
+            <td><button class="btn btn-primary" @onclick="@(()=>ShowDetails(item.Id))">التفاصيل</button><button @onclick="@(()=>ShowDetailsForModal(item.Id))" class="btn btn-info">Details</button><button class="btn btn-warning" @onclick="(()=>UpdateProduct(item.Id))">Update Product</button><button class="btn btn-danger" @onclick="(()=>DeleteProduct(item.Id))">Delete Product</button></td>
+
+        </tr>
+    }
+
+
+
+</table>
+
+
+<br />
+<br />
+<hr />
+
+@if (Show == true)
+{
+    <table class="table table-hover text-center" dir="rtl">
+
+        <tr style="background-color:lightblue" class="font-weight-bolder">
+            <th>رقم الابتوب</th>
+            <th>اسم اللابتوب</th>
+            <th>اسم الشركة </th>
+            <th>الرام</th>
+            <th>سي بي بو</th>
+            <th>الكمية</th>
+            <th>كارت الشاشة</th>
+            <th>اللون</th>
+        </tr>
+        <tr>
+            <td>@ProductDetails.Id</td>
+            <td>@ProductDetails.Name</td>
+            <td>@ProductDetails.CompanyName</td>
+            <td>@ProductDetails.Ram</td>
+            <td>@ProductDetails.CPU</td>
+            <td>@ProductDetails.Quantity</td>
+            <td>@ProductDetails.GraphicCard</td>
+            <td>@ProductDetails.Color</td>
+        </tr>
+    </table>
+
+}
+
+
+@code {
+
+    [CascadingParameter]
+    public IModalService Modal { get; set; }
+
+
+    public List<Friday12__3.Models.Products> ListOfProducts { get; set; } = new List<Models.Products>();
+    public Products ProductDetails { get; set; } = new Products();
+    public bool Show { get; set; } = false;
+
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        ListOfProducts = await _IProducts.GetAllLaptops();
+    }
+
+    private void GoToDetails(int Id)
+    {
+        _NavMan.NavigateTo($"ProductDetails/{Id}");
+    }
+
+    private void UpdateProduct(int Id)
+    {
+        _NavMan.NavigateTo($"UpdateProducts/{Id}");
+    }
+
+    private async Task DeleteProduct(int Id)
+    {
+        var Product = ListOfProducts.SingleOrDefault(a => a.Id == Id);
+
+        var Result = await _Js.InvokeAsync<bool>("confirm", $"are you sure to delete the product with Name {Product.Name}");
+        if (Result)
+        {
+            await _IProducts.DeleteProductById(Id);
+            await _Js.InvokeVoidAsync("alert", "Product Has Been Deleted");
+            _NavMan.NavigateTo("AllLaptops", true);
+        }
+    }
+
+
+    private void ShowDetails(int Id)
+    {
+        var parameters = new ModalParameters();
+        parameters.Add(nameof(ProductDetails.Id), Id);
+
+        Modal.Show<ProductDetails>("Show Movie", parameters);
+    }
+
+
+    private void ShowDetailsForModal(int IdFromButton)
+    {
+
+        var paramaters = new ModalParameters();
+        paramaters.Add(nameof(ProductDetails.Id), IdFromButton);
+        Modal.Show<DetailsForModal>("Product Details", paramaters);
+
+    }
+
+
+
+}

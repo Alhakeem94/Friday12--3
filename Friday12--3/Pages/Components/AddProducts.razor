@@ -1,0 +1,186 @@
+﻿@page "/AddProducts"
+
+@using Friday12__3.Models
+@using Friday12__3.Interfaces
+@using Friday12__3.ViewModels
+@using Microsoft.AspNetCore.Hosting
+@using System.IO;
+
+
+@inject IProducts _IProducts
+@inject IJSRuntime _Js
+@inject IWebHostEnvironment __webHostEnvironment
+@MessageToUser
+
+<div class="room-image float-left" style="background: url('@ImagePath') 100% 100%; "></div>
+<br />
+<br />
+<br />
+<br />
+<br />
+<br />
+<br />
+<br />
+<br />
+<br />
+<br />
+<div class="container" style="padding:10px;background-color:lightblue;">
+    <EditForm Model="ProductViewModel" OnValidSubmit="SendProductToBackEnd">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+
+
+        <InputFile class="col-6" style="float:right" OnChange="DisplayPreview" ></InputFile>
+
+        <div class="form-row">
+            <div class="col">
+                <InputText @bind-Value="ProductViewModel.Name" placeholder="PRODUCT NAME" class="form-control" required></InputText>
+            </div>
+            <div class="col">
+                <InputText @bind-Value="ProductViewModel.CompanyName" placeholder="COMPANY NAME" class="form-control" required></InputText>
+            </div>
+        </div>
+        <br />
+        <div class="form-row">
+            <div class="col">
+                <label for="Ram" style="float:right">رام الحاسبة</label>
+                <InputNumber id="Ram" @bind-Value="ProductViewModel.Ram" placeholder="Ram" class="form-control" required></InputNumber>
+            </div>
+            <div class="col">
+                <InputText @bind-Value="ProductViewModel.GraphicCard" placeholder="Graphic Card" class="form-control" required></InputText>    <br />
+            </div>
+        </div>
+        <div class="form-row">
+            <div class="col">
+                <InputText @bind-Value="ProductViewModel.CPU" placeholder="CPU" class="form-control" required></InputText>    <br />
+            </div>
+            <div class="col">
+                <InputNumber @bind-Value="ProductViewModel.Quantity" placeholder="Quantity" class="form-control" required></InputNumber>    <br />
+            </div>
+        </div>
+        <div class="form-row">
+            <div class="col">
+                <InputNumber @bind-Value="ProductViewModel.Price" placeholder="PRICE" class="form-control" required></InputNumber>    <br />
+            </div>
+            <div class="col">
+                <InputText @bind-Value="ProductViewModel.Color" placeholder="COLOR" class="form-control" required></InputText>    <br />
+            </div>
+        </div>
+        <div class="form-row">
+            <InputText @bind-Value="ProductViewModel.SerialNumber" placeholder="SERIAL NUMBER" class="form-control" required></InputText>
+        </div>
+
+
+
+
+        <br />
+        <button type="submit" class="btn btn-primary form-control">Save</button>
+    </EditForm>
+
+
+
+</div>
+
+
+
+
+
+
+@code {
+
+    public Products Products { get; set; } = new Products();
+    public string MessageToUser { get; set; }
+    public ProductViewModel ProductViewModel { get; set; } = new ProductViewModel();
+    public string ImagePath { get; set; } = "";
+    public string Message { get; set; } = "";
+
+    private void AddName(int Number)
+    {
+
+    }
+
+    private async Task SendProductToBackEnd()
+    {
+
+        var Result = await _Js.InvokeAsync<bool>("confirm", $"Are you sure to add the product {Products.Name}");
+
+        if (Result)
+        {
+            ProductViewModel.ProductImagePath = ImagePath;
+            //var IsProductExist = await _IProducts.CheckIfProductExist(ProductViewModel);
+            //if (IsProductExist == true)
+            //{
+            //    MessageToUser = "Product Already Exisit In Database";
+            //}
+            //else
+            //{
+            MessageToUser = await _IProducts.AddProductFunction(ProductViewModel);
+            MessageToUser = "Product Has been added to database";
+
+            //}
+            ProductViewModel = new ProductViewModel();
+            StateHasChanged();
+        }
+
+
+    }
+
+
+
+    private async Task DisplayPreview(InputFileChangeEventArgs e)
+    {
+
+        if (ImagePath == "")
+        {
+            ImagePath = await InputImage(e);
+        }
+        else if (ImagePath != "")
+        {
+            try
+            {
+                var path = $"{__webHostEnvironment.WebRootPath}\\{ImagePath}";
+                if (File.Exists(path))
+                {
+                    File.Delete(path);
+                    ImagePath = await InputImage(e);
+                }
+
+            }
+            catch (Exception ex)
+            {
+
+                Message = ex.Message;
+            }
+        }
+
+
+    }
+
+    //Images/ 1i23u12yhjasdbu1ghe2uh1g2AhmedCV
+    private async Task<string> InputImage(InputFileChangeEventArgs e)
+    {
+        FileInfo fileInfo = new FileInfo(e.File.Name);
+        var filename = Guid.NewGuid().ToString() + fileInfo.Extension;
+        var folderdirectory = $"{__webHostEnvironment.WebRootPath}\\Images";
+        var path = Path.Combine(__webHostEnvironment.WebRootPath, "Images", filename);
+
+        var memorystream = new MemoryStream();
+        await e.File.OpenReadStream().CopyToAsync(memorystream);
+
+        if (!Directory.Exists(folderdirectory))
+        {
+            Directory.CreateDirectory(folderdirectory);
+        }
+
+        await using (var fs = new FileStream(path, FileMode.Create, FileAccess.Write))
+        {
+            memorystream.WriteTo(fs);
+        }
+
+        var fullpath = $"Images/{filename}";
+        return fullpath;
+    }
+
+
+
+}

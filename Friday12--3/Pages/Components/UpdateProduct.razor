@@ -1,0 +1,97 @@
+﻿@page "/UpdateProducts/{Id}"
+
+@using Friday12__3.Models
+@using Friday12__3.Interfaces
+
+@inject IProducts _IProducts
+@inject IJSRuntime _Js
+@inject NavigationManager _Nav 
+
+
+<div class="container" style="padding:10px;background-color:lightblue;">
+    <EditForm Model="ProductFromDataBase" OnValidSubmit="UpdateProductInDataBase">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+        <div class="form-row">
+            <div class="col">
+                <InputText @bind-Value="ProductFromDataBase.Name" placeholder="PRODUCT NAME" class="form-control" required></InputText>
+            </div>
+            <div class="col">
+                <InputText @bind-Value="ProductFromDataBase.CompanyName" placeholder="COMPANY NAME" class="form-control" required></InputText>
+            </div>
+        </div>
+        <br />
+        <div class="form-row">
+            <div class="col">
+                <label for="Ram" style="float:right">رام الحاسبة</label>
+                <InputNumber id="Ram" @bind-Value="ProductFromDataBase.Ram" placeholder="Ram" class="form-control" required></InputNumber>
+            </div>
+            <div class="col">
+                <InputText @bind-Value="ProductFromDataBase.GraphicCard" placeholder="Graphic Card" class="form-control" required></InputText>    <br />
+            </div>
+        </div>
+        <div class="form-row">
+            <div class="col">
+                <InputText @bind-Value="ProductFromDataBase.CPU" placeholder="CPU" class="form-control" required></InputText>    <br />
+            </div>
+            <div class="col">
+                <InputNumber @bind-Value="ProductFromDataBase.Quantity" placeholder="Quantity" class="form-control" required></InputNumber>    <br />
+            </div>
+        </div>
+        <div class="form-row">
+            <div class="col">
+                <InputNumber @bind-Value="ProductFromDataBase.Price" placeholder="PRICE" class="form-control" required></InputNumber>    <br />
+            </div>
+            <div class="col">
+                <InputText @bind-Value="ProductFromDataBase.Color" placeholder="COLOR" class="form-control" required></InputText>    <br />
+            </div>
+        </div>
+        <div class="form-row">
+            <InputText @bind-Value="ProductFromDataBase.SerialNumber" placeholder="SERIAL NUMBER" class="form-control" required></InputText>
+        </div>
+        <br />
+        <button type="submit" class="btn btn-primary form-control">Update</button>
+    </EditForm>
+
+
+
+</div>
+
+
+
+
+
+
+
+@code {
+
+    [Parameter]
+    public string Id { get; set; }
+    public Products ProductFromDataBase { get; set; } = new Products();
+
+    protected override async Task OnInitializedAsync()
+    {
+        ProductFromDataBase = await _IProducts.GetProductById(int.Parse(Id));
+
+    }
+
+    private async Task UpdateProductInDataBase()
+    {
+        var Result = await _IProducts.UpdateProductById(ProductFromDataBase);
+
+        if (Result)
+        {
+            await _Js.InvokeVoidAsync("alert","Product has been Updated Successfuly");
+            _Nav.NavigateTo("AllLaptops");
+        }
+        else
+        {
+            await _Js.InvokeVoidAsync("alert","could not update entry , please check again the values");
+            _Nav.NavigateTo($"UpdateProducts/{Id}");
+
+        }
+
+    }
+
+
+}

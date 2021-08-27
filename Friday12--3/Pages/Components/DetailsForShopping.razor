@@ -1,0 +1,123 @@
+﻿@page "/DetailsForShopping/{Id}"
+
+@using Friday12__3.ViewModels
+
+@inject IProducts _IProducts
+@inject Blazored.LocalStorage.ILocalStorageService localStorage
+@inject NavigationManager _NavManager
+@inject IJSRuntime _Js
+
+
+<div class="card mb-8" style="max-height:50%;min-height:50%" dir="rtl">
+    <div class="row no-gutters">
+        <div class="col-md-4 img-magnifier-container">
+            <img id="myimage" src="@Product.ProductImagePath" asp-append-version="true" class="card-img" alt="...">
+        </div>
+        <div class="col-md-8 text-right" style="background-color:whitesmoke">
+            <div class="card-body">
+                <h2 class="card-title text-center">@Product.Name</h2>
+                <hr />
+                <br />
+
+                <p class="card-text">@Product.CompanyName</p>
+                <br />
+                <p class="card-text" style="font-size:x-large"> سعر المنتج : @Product.Price</p>
+                <br />
+
+                <EditForm Model="shoppedItemViewModel">
+                    <br />
+                    @if (Product.Quantity <= 0)
+                    {
+                        <div class="row justify-content-center">
+                            <a dir="rtl" class="btn btn-success fa fa-shopping-cart form-control text-center col-4 text-white">هذا المنتج غير متوفر حاليا</a>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="row justify-content-center">
+                            <button @onclick="(()=>AddToShoppingCart(ProductItem.Id))" type="submit" dir="rtl" class="btn btn-primary form-control">اضافة الى عربة التسوق</button>
+                        </div>
+                    }
+                </EditForm>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+
+
+@code {
+
+
+    [Parameter]
+    public string Id { get; set; }
+    public Products Product { get; set; } = new Products();
+    public ShoppedItemViewModel shoppedItemViewModel { get; set; } = new ShoppedItemViewModel();
+    public Products ProductItem { get; set; } = new Products();
+    public List<ShoppedItemViewModel> ShoppedItems = new List<ShoppedItemViewModel>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        Product = await _IProducts.GetProductById(int.Parse(Id));
+    }
+
+    public async Task AddToShoppingCart(int Id)
+    {
+
+        var Item = await _IProducts.GetProductById(Id);
+        var Amount = shoppedItemViewModel.AmountOfItemsShopped;
+        shoppedItemViewModel.TotalInDinner = Item.Price * Amount;
+        shoppedItemViewModel.Product = Item;
+
+        ShoppedItems = await localStorage.GetItemAsync<List<ShoppedItemViewModel>>("List");
+
+        if (ShoppedItems is null || ShoppedItems.Count == 0)
+        {
+
+            ShoppedItems = new List<ShoppedItemViewModel>();
+            ShoppedItems.Add(shoppedItemViewModel);
+            await localStorage.SetItemAsync("List", ShoppedItems);
+            shoppedItemViewModel = new ShoppedItemViewModel();
+            await _Js.InvokeVoidAsync("alert","تمت اضافة العنصر لعربة التسوق");
+            await Task.Delay(1000);
+            _NavManager.NavigateTo("/", true);
+
+        }
+        else
+        {
+
+            var ItemExists = ShoppedItems.SingleOrDefault(a => a.Product.Id == Id);
+            if (ItemExists == null)
+            {
+                ShoppedItems.Add(shoppedItemViewModel);
+                await localStorage.SetItemAsync("List", ShoppedItems);
+                shoppedItemViewModel = new ShoppedItemViewModel();
+                await _Js.InvokeVoidAsync("alert","تمت اضافة العنصر لعربة التسوق");
+                await Task.Delay(1000);
+                _NavManager.NavigateTo("/", true);
+            }
+            else
+            {
+                ShoppedItems.Remove(ItemExists);
+                shoppedItemViewModel.AmountOfItemsShopped = shoppedItemViewModel.AmountOfItemsShopped + Amount;
+                ShoppedItems.Add(shoppedItemViewModel);
+                await localStorage.SetItemAsync("List", ShoppedItems);
+                shoppedItemViewModel = new ShoppedItemViewModel();
+                await _Js.InvokeVoidAsync("Alert","تمت اضافة العنصر لعربة التسوق");
+                await Task.Delay(1000);
+                _NavManager.NavigateTo("/", true);
+            }
+
+
+        }
+
+    }
+
+
+
+
+}

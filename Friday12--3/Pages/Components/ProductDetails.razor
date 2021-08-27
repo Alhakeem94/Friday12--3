@@ -1,0 +1,103 @@
+﻿@page "/ProductDetails/{Id}"
+
+
+@inject IProducts _Iproducts
+@inject IJSRuntime _Js 
+
+
+
+
+<div class="card mb-8" style="max-height:50%;min-height:50%" dir="rtl">
+    <div class="row no-gutters">
+        <div class="col-md-4 img-magnifier-container">
+            <img id="myimage" src="@ProductFromDataBase.ProductImagePath" asp-append-version="true" class="card-img" alt="...">
+        </div>
+        <div class="col-md-8 text-right" style="background-color:whitesmoke">
+            <div class="card-body">
+                <h2 class="card-title text-center">@ProductFromDataBase.Name</h2>
+                <hr />
+                <br />
+
+                <p class="card-text">@ProductFromDataBase.CompanyName</p>
+                <br />
+                <p class="card-text" style="font-size:x-large"> سعر المنتج : @ProductFromDataBase.Price</p>
+                <br />
+
+                <EditForm Model="Products">
+                    <InputNumber class="form-control"  @oninput="CheckQuantity" @bind-Value="Products.Quantity"></InputNumber>
+
+
+
+
+
+                </EditForm>
+
+
+
+
+
+
+
+
+
+
+
+
+                @*<EditForm Model="ShoppedItem">
+                    <br />
+
+                    <div class="col-4">
+                        <InputNumber class="form-control" @oninput="CheckQuantity" @bind-Value="ShoppedItem.AmountOfItemsShopped" />
+                    </div>
+                    <br />
+                    <br />
+                    @if (ProductItem.Quantity <= 0)
+                    {
+                        <div class="row justify-content-center">
+                            <a dir="rtl" class="btn btn-success fa fa-shopping-cart form-control text-center col-4 text-white">هذا المنتج غير متوفر حاليا</a>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="row justify-content-center">
+                            <button @onclick="(()=>AddToShoppingCart(ProductItem.Id))" type="submit" dir="rtl" class="btn btn-primary form-control">اضافة الى عربة التسوق</button>
+                        </div>
+                    }
+                </EditForm>*@
+
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+@code {
+
+    [Parameter]
+    public string Id { get; set; }
+    public int AmountOfProduct { get; set; } = 0;
+    public Products ProductFromDataBase { get; set; } = new Products();
+    public Products Products { get; set; } = new Products();
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        ProductFromDataBase = await _Iproducts.GetProductById(int.Parse(Id));
+    }
+
+
+    private async void CheckQuantity(ChangeEventArgs e)
+    {
+        string value = e.Value.ToString();
+
+
+        if (ProductFromDataBase.Quantity < int.Parse(value))
+        {
+            await _Js.InvokeVoidAsync("alert", $"this product has only {ProductFromDataBase.Quantity} in the storage");
+            Products.Quantity = ProductFromDataBase.Quantity;
+        }
+    }
+
+
+}

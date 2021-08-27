@@ -1,0 +1,55 @@
+﻿
+
+@inject IProducts _IProducts
+
+
+<table class="table table-hover text-center" dir="rtl">
+
+    <tr style="background-color:lightblue" class="font-weight-bolder">
+        <th>رقم الابتوب</th>
+        <th>اسم اللابتوب</th>
+        <th>اسم الشركة </th>
+        <th>تفاصيل المنتج</th>
+    </tr>
+    <tr>
+        <td>@product.Id</td>
+        <td>@product.Name</td>
+        <td>@product.CompanyName</td>
+    </tr>
+
+
+
+
+</table>
+
+
+
+
+
+
+
+@code {
+
+    [Parameter]
+    public int Id { get; set; }
+
+
+
+    [CascadingParameter]
+    public BlazoredModalInstance ModalInstance { get; set; }
+
+    public Products product { get; set; } = new Products();
+
+
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        product = await _IProducts.GetProductById(Id);
+    }
+
+
+
+
+
+}

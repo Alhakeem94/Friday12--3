@@ -1,0 +1,93 @@
+﻿@page "/"
+
+
+
+@inject IProducts _IProducts
+
+
+
+<div id="carouselExampleIndicators" class="carousel slide" data-ride="carousel">
+    <ol class="carousel-indicators">
+        <li data-target="#carouselExampleIndicators" data-slide-to="0" class="active"></li>
+        <li data-target="#carouselExampleIndicators" data-slide-to="1"></li>
+        <li data-target="#carouselExampleIndicators" data-slide-to="2"></li>
+    </ol>
+    <div class="carousel-inner">
+        <div class="carousel-item active">
+            <img class="d-block w-100" src="/Images/7acef120-9151-4066-a94c-f7a37fe3ca08.jpg" alt="First slide" style="width:800px;height:600px;">
+        </div>
+    </div>
+    <a class="carousel-control-prev" href="#carouselExampleIndicators" role="button" data-slide="prev">
+        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+        <span class="sr-only">Previous</span>
+    </a>
+    <a class="carousel-control-next" href="#carouselExampleIndicators" role="button" data-slide="next">
+        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+        <span class="sr-only">Next</span>
+    </a>
+</div>
+
+
+<br />
+<br />
+
+
+<div class="card-deck col-sm-12 col-12 row-cols-1 row-cols-md-3" style="margin:1px;margin-left:20px;">
+
+    @foreach (var item in AllProdcuts)
+    {
+        var ProductPhoto = item.ProductImagePath;
+        <div class="row">
+            <div class="container">
+                <div class="card mb-6 text-black font-weight-bold" style="margin:2px;min-height:320px;margin-left:10px">
+                    @if (item.Quantity <= 0)
+                    {
+                        <span class="notify-badge">Sold</span>
+                    }
+                     <a href="@($"ProductDetails/{item.Id}")"><img style="max-height:300px;min-height:300px;" src="@ProductPhoto" class="card-img-top zoom" /></a>
+                    <div class="card-body text-center" style="background-color:#fff">
+                        <h5 class="card-title  text-center" style="text-decoration:dotted"> @item.Name</h5>
+                        <hr />
+                        @if (item.Quantity <= 0)
+                        {
+                            <div class="row" style="margin:10px">
+                                <a style="margin:5px" class="btn btn-danger form-control text-white">نفذت الكمية</a>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="row" style="margin:10px">
+                                <a href="@($"ProductDetails/{item.Id}")" style="margin:5px" class="btn btn-warning font-weight-bold text-white form-control">تفاصيل </a>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    }
+
+</div>
+
+
+
+
+
+
+
+
+@code{
+
+    public List<Products> AllProdcuts { get; set; } = new List<Products>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        AllProdcuts = await _IProducts.GetAllLaptops();
+    }
+
+
+
+
+
+
+}
